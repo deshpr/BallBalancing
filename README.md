@@ -1,6 +1,6 @@
 # Ball Balancing
 
-** Running the project **
+**Running the project**
 
 1. Clone the project :
 	git clone https://github.com/deshpr/BallBalancing.git
