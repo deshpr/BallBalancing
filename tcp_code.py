@@ -5,7 +5,7 @@ import base64
 import cv2
 from PIL import Image
 import numpy as np
-
+global str
 
 def tobits(s):
     result = []
@@ -34,32 +34,27 @@ def make_message(portnumbers):
 
 def client(port):
     clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    clientSocket.connect(('10.16.12.66' , port))        
+    clientSocket.connect(('127.0.0.1' , port))        
     print('Client {} is connecting to server'.format(clientSocket.getsockname()))
-    
-		
+    camera = cv2.VideoCapture(0)	
     while True:
-        time.sleep(0.1)
-        a1 = '12'
-        a2 = '15'
-        a3 = '45'
-        a4 = '67'
-        a5 = '89'
-	camera = cv2.VideoCapture(0)
+        time.sleep(0.1)	
+	print('capture the next  frame')
     	_, frame = camera.read()
-    	cv2.imwrite("myImage.jpg", frame)
+    	cv2.imwrite("myimage.jpg", frame)
     	with open("myimage.jpg", "rb") as imageFile:
-		str = base64.b64encode(imageFile.read())
-		word = str
-		print('the length odf the message is = {0}'.format(len(word)))
-#        word = make_message([a1,a2, a3, a4, a5]) 
-        #print('Client {} sends the word {}'.format(clientSocket.getsockname(), word))
-	print('sending the message')
-        clientSocket.sendall(word)
-	print('sent the message')
-        #print('Client has send the word = ' + word)
-  #      reply = recvall(clientSocket, len(word))
-#        print('Server responded with {}'.format(repr(reply)))
+		str_result = base64.b64encode(imageFile.read())
+		word = str_result
+	        length_message = len(word)
+        	str_equiv = str(length_message)
+        	length_number = len(str_equiv)
+        	to_send_length = " " * (16 - length_number)
+        	to_send_length = to_send_length + str(length_message)
+		print('sending the string of length = {0}'.format(to_send_length))
+		print('the length of the message is = {0}'.format(len(word)))
+		print('sending the message')
+        	clientSocket.sendall(to_send_length + word)
+		print('sent the message')
     clientSocket.close()
  
 
@@ -83,11 +78,13 @@ def server(port):
         while True:
         # process no more than one word.
             print('Waiting for information from client {}'.format(clientName))
-            message = recvall(activeSocket, 50884)
-	    #message = activeSocket.recv(256 * 100)
-            print('Received information from the client = {}'.format(clientName))
-	    print('the length odf the message is = {0}'.format(len(message)))
-	    print('now decoding')
+            length_message = recvall(activeSocket, 16)
+	    #print('the message = {0}'.format(length_message))
+	    length_message = int(length_message)
+	    message = recvall(activeSocket, length_message)
+            #print('Received information from the client = {}'.format(clientName))
+	    #print('the length odf the message is = {0}'.format(len(message)))
+	    #print('now decoding')
             imagetoshow = message.decode('base64')
 	    nparr = np.fromstring(imagetoshow, np.uint8)
 	    img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
