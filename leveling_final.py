@@ -4,10 +4,14 @@ import cv2
 import sys
 import time
 
-a = int(sys.argv[1])
-b = int(sys.argv[2])
-c = int(sys.argv[3])
-d = int(sys.argv[4])
+#a = int(sys.argv[1])
+#b = int(sys.argv[2])
+#c = int(sys.argv[3])
+#d = int(sys.argv[4])
+a = 10
+b = 10
+c = 70
+d = 80
 counter = 0
 
 One_Servo = Servo.Servo('PWM 3')
@@ -30,11 +34,14 @@ Four_Servo.attach(9)
 Four_Servo.writeMicroseconds(700)
 Four_Servo.write(d)
 
+
+
+# values that bring the platform to steady state.
 def balancedState():
-	One_Servo.write(30)
-	Two_Servo.write(50)
-	Three_Servo.write(45)
-	Four_Servo.write(100)
+	One_Servo.write(10)
+	Two_Servo.write(10)
+	Three_Servo.write(70)
+	Four_Servo.write(80)
 
 def MoveServos():
 	One_Servo.write(a)
@@ -42,5 +49,8 @@ def MoveServos():
 	Three_Servo.write(c)
 	Four_Servo.write(d)
 
-while(1):
-	MoveServos()
+
+balancedState()
+
+#while(1):
+#	MoveServos()

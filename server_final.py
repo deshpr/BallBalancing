@@ -18,28 +18,18 @@ import cv2
 
 
 pts = deque(maxlen = 1000)
-center_points = deque(maxlen=1000)
-
+center_pts = deque(maxlen = 1000)
 
 def detect_object(frame):
 
     boundaries = [
-       ([2,2,118], [40,40,255]), # works = red!
-#        ([86, 31, 4], [220, 88, 50])
-     #    ([86, 31, 4], [220, 88, 50])
-      #  ([102, 35, 0], [192, 82, 42])
-    #    ([51, 72, 65], [60, 192, 3])
-#        ([130, 31, 4], [220, 88, 50]) #- this works
-#    ([153, 153, 0], [204, 204, 0])
-([167,123,6], [195, 167, 49])
-      #  ([86, 31, 4], [220, 88, 50])
-            #([71, 33, 0], [241, 180, 161])  # cyan blue
-    #    ([118, 31, 4], [220, 88, 50])
+	([167,123,6], [195, 167, 49]), # the center.
+        ([2,2,118], [40,40,255]) # works! - red
+	
     #	([34,34,178], [0, 0, 255]),
     #	([25, 146, 190], [62, 174, 250]),
     #	([103, 86, 65], [145, 133, 128])
     ]
-    
     k = 0
     for (lower, upper) in boundaries:
         lower = np.array(lower, dtype = "uint8")
@@ -65,37 +55,36 @@ def detect_object(frame):
             except ZeroDivisionError:
                 continue;   # leave this center
             # only proceed if the radius meets a minimum size
-        #    print('radius = {0}'.format(radius))
-            if radius > 0:
+            if radius > 10:
                 # draw the circle and centroid on the frame,
                 # then update the list of tracked points
                 cv2.circle(frame, (int(x), int(y)), int(radius),(0, 255, 255), 2)
                 cv2.circle(frame, center, 5, (0, 0, 255), -1)
     #            cv2.imwrite("result.jpg", frame)
             if k == 0:
-                pts.appendleft(center)
-            else:
-                center_points.appendleft(center)
+		pts.appendleft(center)
+	    else:
+		center_pts.appendleft(center)
             for i in  xrange(1, len(pts)):
                 if pts[i - 1] is None or pts[i] is None:
                     continue
                 thickness = int(np.sqrt(1000/float(i+ 50)) * 1.5)
                 cv2.line(frame, pts[i-1], pts[i], (255,0,0), thickness)
-            for i in  xrange(1, len(center_points)):
+            for i in  xrange(1, len(center_pts)):
                 if pts[i - 1] is None or pts[i] is None:
                     continue
                 thickness = int(np.sqrt(1000/float(i+ 50)) * 1.5)
-                cv2.line(frame, pts[i-1], pts[i], (255,0,0), thickness)
+                cv2.line(frame, pts[i-1], pts[i], (0,255,0), thickness)
+
             #cv2.imshow("Frame", frame)
             #print("The frame is at = {0}".format(center))
             key = cv2.waitKey(1) & 0xFF
-           
             if key == ord("q"):
             #   print('break the loop')
                 break
         else:
             print('no contours found')
-        k = k + 1
+	k = k + 1
         #print('this is the frame to return')
         #print(frame)
         #print('return it')
