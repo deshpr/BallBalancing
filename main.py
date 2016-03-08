@@ -7,7 +7,10 @@ import cv2
 # define the list of acceptable colors
 
 boundaries = [
-	([2,2,118], [40,40,255]) # works!
+#	([2,2,118], [40,40,255]) # works!
+#	([51, 72, 20], [60, 192, 3])
+#	([86, 31, 4], [220, 100, 110])
+	([167,123,6], [195, 167, 49])
 #	([34,34,178], [0, 0, 255]),
 #	([25, 146, 190], [62, 174, 250]),
 #	([103, 86, 65], [145, 133, 128])
@@ -17,9 +20,12 @@ pts = deque(maxlen = 1000)
 
 for (lower, upper) in boundaries:
     lower = np.array(lower, dtype = "uint8")
-    upper = np.array(upper, dtype = "uint8")
+    upper = np.array(upper, dtype = "uint8") 
+    camera = cv2.VideoCapture(0)
     while True:
-        gr, frame = cv2.VideoCapture(0).read()
+        gr, frame = camera.read()
+	cv2.imshow("captured", frame)
+	cv2.waitKey(1)
         mask = cv2.inRange(frame, lower, upper)
         output = cv2.bitwise_and(frame, frame, mask = mask)
     #    cv2.imshow("images", np.hstack([frame, output]))
@@ -51,6 +57,7 @@ for (lower, upper) in boundaries:
                 thickness = int(np.sqrt(1000/float(i+ 50)) * 1.5)
                 cv2.line(frame, pts[i-1], pts[i], (255,0,0), thickness)
             cv2.imshow("Frame", frame)
+	    #cv2.waitKey(1)
             #print("The frame is at = {0}".format(center))
             key = cv2.waitKey(1) & 0xFF
             if key == ord("q"):
