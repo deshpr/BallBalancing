@@ -12,6 +12,9 @@ global str
 import argparse
 from collections import deque
 import cv2
+
+locked_center = None
+
  
 """
 import mraa
@@ -29,6 +32,8 @@ b = 10
 c = 70
 d = 80
 counter = 0
+
+
 
 One_Servo = Servo.Servo('PWM 3')
 One_Servo.attach(3)
@@ -69,6 +74,12 @@ def MoveServos():
 
 def square(n):
     return n * n
+
+def convert_pixels_to_centimeters(pixel_value):
+    return (pixel_value * 18)/74.202	# callibrated.
+
+def convert_point_to_cm(point_one):
+    return (convert_pixels_to_centimeters(point_one[0]), convert_pixels_to_centimeters(point_one[1]))
 
 def calculate_distance(point_one, point_two):
     return np.sqrt(square(point_one[0] - point_two[0]) + square(point_one[1] - point_two[1]))
@@ -130,6 +141,8 @@ def detect_object(frame):
                 # then update the list of tracked points
 		cv2.circle(frame, (int(x), int(y)), int(radius),(0, 255, 255), 2)
                 cv2.circle(frame, center, 5, (0, 0, 255), -1)
+		if k == 1: #  ball
+			print('The center = {0}'.format(center))
     #            cv2.imwrite("result.jpg", frame)
 	    cv2.circle(frame, center, 5, (0, 0, 255), -1)
 	    print('the k = {0}'.format(k))
@@ -201,28 +214,28 @@ def get_rotation_angle_servo(servo_number, distance):
 	return ((distance/19.625)*(170  - 80) + 80)
 
 
+# point: the location of the ball
+# In each case, find the coordinate of the  servos ( or mid-points of the edges) 
+# of the platform, and subtract with the position of the ball to get the  distance
+# from the servos - no need of trig here.
 
-def convert_pixels_to_centimeters(pixel_value):
-    return (pixel_value * 2.54)/96
-
-
-def set_servo_angles(quadrant, distance):
+def set_servo_angles(quadrant, point):
     if quadrant == 1:
 # run servo one and two
-	a = get_rotation_angle_servo(1, distance)
-	b = get_rotation_angle_servo(2, distance)
-    if quadrant == 2:
+	a = get_rotation_angle_servo(1, point[1])
+	b = get_rotation_angle_servo(2, point[0])
 # set angles for servos 1 and 4
-	a = get_rotation_angler_servo(1, distance)
-	d = get_rotation_angle_servo(4, distance)
-   if quadrant == 3:
+    if quadrant == 2:
+	a = get_rotation_angler_servo(1, point[1])	 
+	d = get_rotation_angle_servo(4, point[0])	
+    if quadrant == 3:
 # set angles for serbos 3 and 4
-	c = get_rotation_angle_servo(3, distance)
-	d = get_rotation_angle_servo(4, distance)
-   if quadrant == 4:
+	c = get_rotation_angle_servo(3, point[0])
+	d = get_rotation_angle_servo(4, point[1])
+    if quadrant == 4:
 # set angles for servos 2 and 3
-	b  = get_rotation_angle_servo(2, distance)
-	c = get_rotation_angle_servo(3, distance)
+	b  = get_rotation_angle_servo(2, point[0])
+	c = get_rotation_angle_servo(3,  point[1])
 
 
 def recvsize(sock):
@@ -288,9 +301,12 @@ while True:
 		    print('The object lies in quadrant = {0}'.format(quadrant))
 		    if platform_center!=None and object_center!=None:
 			    distance = calculate_distance(platform_center, object_center)
-			    print('The distance  = {0}'.format(distance))
-			    in_cm = convert_pixels_to_centimeters(distance)
-			    print('Distance in cm = {0}'.format(in_cm))
+			    print('The distance (pixels) = {0}'.format(distance))
+			    platform_cm = convert_point_to_cm(platform_center)
+			    object_cm = convert_point_to_cm(object_center)
+			    distance_cm = calculate_distance(platform_cm, object_cm)
+			    print('The distance(cm) = {0}'.format(distance_cm))
+#			    print('Distance in cm = {0}'.format(in_cm))
 			    #set_servo_angles(quadrant, distance)
 			    #MoveServos()
             	    cv2.imshow("result", frame)
