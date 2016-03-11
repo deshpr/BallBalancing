@@ -34,13 +34,14 @@ def make_message(portnumbers):
 
 def client(port):
     clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    clientSocket.connect(('127.0.0.1' , port))        
+    clientSocket.connect(('10.16.12.66' , port))        
     print('Client {} is connecting to server'.format(clientSocket.getsockname()))
     camera = cv2.VideoCapture(0)	
     while True:
         time.sleep(0.1)	
 	print('capture the next  frame')
     	_, frame = camera.read()
+		
     	cv2.imwrite("myimage.jpg", frame)
     	with open("myimage.jpg", "rb") as imageFile:
 		str_result = base64.b64encode(imageFile.read())

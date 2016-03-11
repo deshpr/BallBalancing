@@ -12,6 +12,22 @@ global str
 import argparse
 from collections import deque
 import cv2
+ 
+
+# define the list of acceptable colors
+
+
+import socket, sys, argparse
+import time
+import base64
+import cv2
+from PIL import Image
+import imutils
+import numpy as np
+global str
+import argparse
+from collections import deque
+import cv2
 import mraa
 import Servo
 import time
@@ -97,6 +113,7 @@ def get_average_center(center_list):
 pts = deque(maxlen = 1000)
 center_pts = deque(maxlen = 1000)
 
+
 def detect_object(frame):
     k =0
     last_center = None
@@ -181,6 +198,18 @@ def detect_object(frame):
     return (frame, platform_center, center)
 
 
+
+
+def recvsize(sock):
+    data = b''
+    while '.' not in data:
+	more = sock.recv(1);
+	#print('getting size char = {0}'.format(more))
+	data += more
+    return data
+
+	
+
 # change the values based on which servo to rotate
 def determine_quadrant(platform_center, object_center):
 
@@ -234,16 +263,8 @@ def set_servo_angles(x_distance, y_distance):
 		b = flat_b
 	else:
 		d = flat_d
-		b = flat_b
-
-def recvsize(sock):
-    data = b''
-    while '.' not in data:
-	more = sock.recv(1);
-	#print('getting size char = {0}'.format(more))
-	data += more
-    return data
-
+		b = flat_b	
+	
 
 def recvall(sock, length):
     data  = b''
@@ -254,46 +275,17 @@ def recvall(sock, length):
     return data
 
 
-
-#balancedState()
-
-serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)   
-serverSocket.bind(('0.0.0.0', 1069))
-serverSocket.listen(2) # work with only a single client.
-print('Listening at ', serverSocket.getsockname())
-mySockets = []
-clientCount = 0;
-bytes_data = ''
-while True:
-    print('Waiting for a new request')
-    activeSocket, clientName = serverSocket.accept()
-    clientCount += 1
-    print('Server {} has connected to client {}'.format(activeSocket.getsockname(),activeSocket.getpeername()))
-    print('The involved client is: {}'.format(clientName))
-    print('Server is now reading stuff')
-    while True:
-            # process no more than one word.
-        #print('Waiting for information from client {}'.format(clientName))
-        length_message = recvsize(activeSocket)
-	#print('the message = {0}'.format(length_message))
-	length_message = int(length_message[:-1])
-	print('receive an image of length = {0}'.format(length_message))
-	message = recvall(activeSocket, length_message)
-	missing_padding = 4 - len(message) % 4
-    	if missing_padding:
-        	message += b'='* missing_padding
-        imagetoshow = message.decode('base64')
-	nparr = np.fromstring(imagetoshow, np.uint8)
-	frame = []
-	platform_center = None
-	object_center = None
-	if nparr.size != 0:
-		try:
-	            img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        	    frame = imutils.resize(img_np, width = 300)
-            	    (frame, platform_center, object_center) = detect_object(frame)
-		    print('Finished processing, back to main()')
+	
+	
+def main():
+	bytes_data = ''
+	camera = cv2.VideoCapture(0)
+	while True:
+		try:			
+		    _, nparr = camera.read()
+			#img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+		    frame = imutils.resize(nparr, width = 300)		
+		    (frame, platform_center,  object_center)= detect_object(frame)
 		    cv2.imwrite("platformImage.jpg", frame)
 		    print('Platform center = {0}, Object center = {1}'.format(platform_center, object_center))
 		    quadrant  = determine_quadrant(platform_center, object_center)
@@ -311,10 +303,8 @@ while True:
 			    MoveServos()
 				    #cv2.imshow("result", frame)
                     #cv2.waitKey(1)
-       		except cv2.error as e:
-		    print('there was an exception')
-       		    print(e) 
-		    
-		
-           #else:
-         #   print('did not get a clear image yet')
+		except cv2.error as e:
+			print('there was an exception')
+			print(e) 
+
+main()
